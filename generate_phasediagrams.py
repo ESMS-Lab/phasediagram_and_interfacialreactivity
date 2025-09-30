@@ -180,7 +180,7 @@ def parse_reaction(react_line):
     return reactant_dict, product_dict, react_energy
 
 
-def generate_GPPD_and_GPIR(elements_, relative_mu, composition_, write_dir = None, inputfile=None, comp_benign=None, open_el=None, input_products=None, only_exp_observed=False, no_bare_metals=False):
+def generate_GPPD_and_GPIR(elements_, relative_mu, composition_, write_dir = None, inputfile=None, comp_benign=None, open_el=None, input_products=None, only_exp_observed=False, unwanted_elems=[]):
     mpr = MPRester('JxCBb3dqR7jtlimd8RA9DokS7uX8Ru7m')
 
     ### grabs all entries from materials project that permutations of the ###
@@ -210,15 +210,28 @@ def generate_GPPD_and_GPIR(elements_, relative_mu, composition_, write_dir = Non
     theo_exp_entries = mpr.get_entries_in_chemsys(elements_) #, additional_criteria={"thermo_types":["R2SCAN"]})
 
     entries = []
-        
+    bool_array = np.ones_like(theo_exp_entries).astype(bool)
+    
     if (only_exp_observed):
         for i in range(len(exp_entries)):
             exp_entry = exp_entries[i]
+            #print(exp_entry.formula)
             entry_found = False
-            
+            #print(f"exp_entry test: {exp_entry.composition}")
             for j in range(len(theo_exp_entries)): 
                 theo_exp_entry = theo_exp_entries[j] 
+                
                 if (exp_entry.formula == theo_exp_entry.formula):
+                    #print(f"FOUND ENTRY: {theo_exp_entry.composition}")
+                    bool_array[j] = False
+                    if ((len(unwanted_elems) != 0) and (len(theo_exp_entry.elements) == 1)):
+                        #print(f"theo_exp_entry.elements first if statement: {theo_exp_entry.elements}")
+                        if (theo_exp_entry.elements[0].symbol in unwanted_elements):
+                            print(theo_exp_entry.composition)
+                            print(f"old energy: {theo_exp_entry._energy}")
+                            theo_exp_entry._energy += 1000
+                            print(f"new energy: {theo_exp_entry._energy}")
+
                     entries.append(theo_exp_entry)
                     entry_found = True
                     
@@ -408,7 +421,8 @@ def generate_GPPD_and_GPIR(elements_, relative_mu, composition_, write_dir = Non
         stableonly_file.write(f"\n")
         stableonly_file.close()   
 
-def generate_PD_and_IR(elements_, reactant1, reactant2, input_reactants=None, input_products=None, only_exp_observed=False):
+
+def generate_PD_and_IR(elements_, reactant1, reactant2, input_reactants=None, input_products=None, only_exp_observed=False, unwanted_elems=[]):
     mpr = MPRester('JxCBb3dqR7jtlimd8RA9DokS7uX8Ru7m')
 
     '''
@@ -447,23 +461,31 @@ def generate_PD_and_IR(elements_, reactant1, reactant2, input_reactants=None, in
 
     entries = []
     bool_array = np.ones_like(theo_exp_entries).astype(bool)
-        
+    
     if (only_exp_observed):
         for i in range(len(exp_entries)):
             exp_entry = exp_entries[i]
             entry_found = False
-            #print(f"exp_entry test: {exp_entry.composition}")
             for j in range(len(theo_exp_entries)): 
                 theo_exp_entry = theo_exp_entries[j] 
+                
                 if (exp_entry.formula == theo_exp_entry.formula):
-                    #print(f"FOUND ENTRY: {theo_exp_entry.composition}")
                     bool_array[j] = False
+                    if ((len(unwanted_elems) != 0) and (len(theo_exp_entry.elements) == 1)):
+                        #print(f"theo_exp_entry.elements first if statement: {theo_exp_entry.elements}")
+                        if (theo_exp_entry.elements[0].symbol in unwanted_elements):
+                            print(theo_exp_entry.composition)
+                            print(f"old energy: {theo_exp_entry._energy}")
+                            theo_exp_entry._energy += 1000
+                            print(f"new energy: {theo_exp_entry._energy}")
+
                     entries.append(theo_exp_entry)
                     entry_found = True
                     
             if not entry_found:
                 print(f"ENTRY NOT FOUND: {exp_entry.composition} energy: {exp_entry.energy}")
                 entries.append(exp_entry)
+            
                     
     else: entries = theo_exp_entries
     
