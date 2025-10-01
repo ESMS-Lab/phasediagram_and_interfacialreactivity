@@ -473,7 +473,7 @@ def generate_PD_and_IR(elements_, reactant1, reactant2, input_reactants=None, in
                     bool_array[j] = False
                     if ((len(unwanted_elems) != 0) and (len(theo_exp_entry.elements) == 1)):
                         #print(f"theo_exp_entry.elements first if statement: {theo_exp_entry.elements}")
-                        if (theo_exp_entry.elements[0].symbol in unwanted_elements):
+                        if (theo_exp_entry.elements[0].symbol in unwanted_elems):
                             print(theo_exp_entry.composition)
                             print(f"old energy: {theo_exp_entry._energy}")
                             theo_exp_entry._energy += 1000
@@ -501,7 +501,7 @@ def generate_PD_and_IR(elements_, reactant1, reactant2, input_reactants=None, in
     '''
     if (input_reactants == None): pass
     else: 
-        filename = inputfile            # xml file name (str)
+        filename = input_reactants            # xml file name (str)
         ionic_step_skip = None          # read every "ith" frame if set to "i" (int, default = None))
         ionic_step_offset = -1          # start reading at "ith" frame if set to "i" (int, default = 0)
         parse_dos = False               # read in density of states (bool, default = True))
@@ -562,7 +562,6 @@ def generate_PD_and_IR(elements_, reactant1, reactant2, input_reactants=None, in
             #print(f"CSE_loaded: energy: {CSE_loaded.energy}    composition: {CSE_loaded.composition}")
             entries.append(CSE_loaded)
     
-
     exp_entries_set = np.sort(list((set([tuple([entry.composition.reduced_formula, entry.energy_per_atom]) for entry in entries]))))
     theo_exp_entries_set = np.sort(list((set([tuple([entry.composition.reduced_formula, entry.energy_per_atom]) for entry in theo_exp_entries]))))
 
