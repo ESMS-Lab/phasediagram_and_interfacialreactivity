@@ -289,7 +289,7 @@ def get_reaction_GP(reactant_dict, product_dict, entries, gpd_obj, norm = False)
     return reactant_E
 
 
-def generate_GPPD_and_GPIR(elements_, relative_mu, composition_, write_dir = None, inputfile=None, comp_benign=None, open_el=None, input_products=None, only_exp_observed=False, _unwanted_elems=[], custom_theo_entries_file = None):
+def generate_GPPD_and_GPIR(elements_, relative_mu, comp1_react_, write_dir = None, inputfile=None, comp2_react=None, open_el=None, input_products=None, only_exp_observed=False, _unwanted_elems=[], custom_theo_entries_file = None):
     mpr = MPRester('JxCBb3dqR7jtlimd8RA9DokS7uX8Ru7m')
 
     ### grabs all entries from materials project that permutations of the ###
@@ -533,11 +533,11 @@ def generate_GPPD_and_GPIR(elements_, relative_mu, composition_, write_dir = Non
     gpd = GrandPotentialPhaseDiagram(entries=entries, chempots=chempots) #, elements=elements_)
    
 
-    comp_SE = Composition(composition_)
+    comp_SE = Composition(comp1_react_)
     
-    IR_reacs = InterfacialReactivity(c1=comp_SE, c2=comp_benign, pd=pd, norm=True, use_hull_energy=False)
+    IR_reacs = InterfacialReactivity(c1=comp_SE, c2=comp2_react, pd=pd, norm=True, use_hull_energy=False)
     
-    GPIR_reacs = GrandPotentialInterfacialReactivity(c1=comp_SE, c2=comp_benign, grand_pd=gpd, pd_non_grand=pd, norm=True, include_no_mixing_energy=True, use_hull_energy=False)
+    GPIR_reacs = GrandPotentialInterfacialReactivity(c1=comp_SE, c2=comp2_react, grand_pd=gpd, pd_non_grand=pd, norm=True, include_no_mixing_energy=True, use_hull_energy=False)
     
     ### calculate reaction energies ###
     '''
@@ -616,12 +616,8 @@ def generate_GPPD_and_GPIR(elements_, relative_mu, composition_, write_dir = Non
         react_output = allatoms_str + f"_{round(relative_mu, 3)}volts_reactions.txt"
 
         pwd = os.getcwd()
-        # react_dir = os.path.join(pwd, "revised_reactions_theo_exp")
-        # react_dir = os.path.join(pwd, "revised_reactions_nobaremetals_2020compat_noreserve")
-        # react_dir = os.path.join(pwd, "revised_reactions_theo_exp_2020compat")
-        # react_dir = os.path.join(pwd, "revised_reactions_theo_exp_2020compat_noreserve")
-        react_dir = os.path.join(pwd, "cole_LPS_reactions")
-        # react_dir = None
+
+        react_dir = os.path.join(pwd, "LFP_reactions")
 
         if os.path.isdir(react_dir): pass
         else: os.mkdir(react_dir)
@@ -629,7 +625,7 @@ def generate_GPPD_and_GPIR(elements_, relative_mu, composition_, write_dir = Non
         print(f"react_dir: {react_dir}")
         print(f"react_output: {react_output}")
         react_file = open(react_output, "w")
-        react_file.write(f"{composition_} decomposition reactions\n--------\n")
+        react_file.write(f"{comp1_react_} decomposition reactions\n--------\n")
 
         for key, value in GPIR_reacs.labels.items():
             split_line = value.split()
@@ -648,7 +644,7 @@ def generate_GPPD_and_GPIR(elements_, relative_mu, composition_, write_dir = Non
             print(f"math_symbols {math_symbols}")
             print(f"compounds_compositions {compounds_compositions}")
             
-            if (Composition(composition_) in compounds_compositions): 
+            if (Composition(comp1_react_) in compounds_compositions): 
                 ### replacing compounds strings in reaction with compositions ###
                 reaction_split_temp = copy.deepcopy(reaction_split)
                 print(f"reaction_split: {reaction_split}")
@@ -657,8 +653,8 @@ def generate_GPPD_and_GPIR(elements_, relative_mu, composition_, write_dir = Non
                     cmpd_idx = reaction_split.index(cmpd)
                     reaction_split_temp[cmpd_idx] = compounds_compositions[i]
 
-                comp_index = reaction_split_temp.index(Composition(composition_))
-                print(f"composition_: {composition_}  comp_index {comp_index}")
+                comp_index = reaction_split_temp.index(Composition(comp1_react_))
+                print(f"comp1_react_: {comp1_react_}  comp_index {comp_index}")
                 print(f"reaction_split[(comp_index-1)]: {reaction_split[(comp_index-1)]}")
                 
                 if (comp_index != 0) and (reaction_split[(comp_index-1)] != "->"): comp_coeff = float(reaction_split[(comp_index-1)])
